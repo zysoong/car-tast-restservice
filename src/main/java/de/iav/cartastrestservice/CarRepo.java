@@ -23,4 +23,10 @@ public class CarRepo {
 
     public int size(){return this.listOfCar.size();}
 
+    @Override
+    public String toString() {
+        return "CarRepo{" +
+                "listOfCar=" + listOfCar +
+                '}';
+    }
 }
