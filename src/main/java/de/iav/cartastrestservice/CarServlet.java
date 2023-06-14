@@ -56,39 +56,47 @@ public class CarServlet extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
-        // Convert request body JSON Object to StringBuilder: reading the response buffer line by line
-        BufferedReader reader = request.getReader();
-        StringBuilder requestBody = new StringBuilder();
-        String line;
 
-        while ((line = reader.readLine()) != null) {
-            requestBody.append(line);
+        if (request.getPathInfo() == null && request.getQueryString() == null)
+        {
+            // Convert request body JSON Object to StringBuilder: reading the response buffer line by line
+            BufferedReader reader = request.getReader();
+            StringBuilder requestBody = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                requestBody.append(line);
+            }
+
+            reader.close();
+
+            // Add ObjectMapper from Jackson Databind to parse JSON String to Java POJO Object
+            ObjectMapper mapper = new ObjectMapper();
+
+
+            try {
+                // Read JSON String from the StringBuilder (request body) above, Parse the JSON String to Java POJO Object
+                Car parsedCar = mapper.readValue(requestBody.toString(), Car.class);
+
+                // Add the object to repository
+                this.carRepo.add(parsedCar);
+
+                // String of the given object as response
+                response.setContentType("application/json");
+                response.getWriter().write(mapper.writeValueAsString(parsedCar));
+
+                // Also give the list of all cars as response
+                //response.getWriter().write();
+
+            } catch (UnrecognizedPropertyException e) {
+                response.setStatus(400);
+                response.getWriter().write("Invalid request body");
+            }
+
         }
 
-        reader.close();
+        // else if (query param with regex ...)
 
-        // Add ObjectMapper from Jackson Databind to parse JSON String to Java POJO Object
-        ObjectMapper mapper = new ObjectMapper();
-
-
-        try {
-            // Read JSON String from the StringBuilder (request body) above, Parse the JSON String to Java POJO Object
-            Car parsedCar = mapper.readValue(requestBody.toString(), Car.class);
-
-            // Add the object to repository
-            this.carRepo.add(parsedCar);
-
-            // String of the given object as response
-            response.setContentType("application/json");
-            response.getWriter().write(mapper.writeValueAsString(parsedCar));
-
-            // Also give the list of all cars as response
-            //response.getWriter().write();
-
-        } catch (UnrecognizedPropertyException e) {
-            response.setStatus(400);
-            response.getWriter().write("Invalid request body");
-        }
     }
 
 }
